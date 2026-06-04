@@ -1,6 +1,10 @@
 from app.db.dbengine import engine
 from app.models.models import Base
+import logging
 
-print("Creating Table......")
-Base.metadata.create_all(bind = engine)
-print("Table Created")
+logger = logging.getLogger(__name__)
+
+if __name__ == "__main__":
+    logger.info("Creating tables...")
+    Base.metadata.create_all(bind = engine)
+    logger.info("Tables created.")

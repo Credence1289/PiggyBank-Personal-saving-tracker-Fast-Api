@@ -1,10 +1,13 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+import logging
 
 from app.core.token import decode_token
 from app.db.session import get_db
 from app.models import models
+
+logger = logging.getLogger(__name__)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/user/login")
 
@@ -14,6 +17,7 @@ def current_user(
 ):
     payload = decode_token(token)
     if payload is None:
+        logger.warning("Invalid token")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token"
@@ -24,14 +28,16 @@ def current_user(
     role = payload.get("role")
 
     if not user_id or not role:
+        logger.warning("Invalid token payload")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload"
         )
 
     if role == "user":
-        user = db.query(db_models.User).filter(db_models.User.user_id == user_id).first()
+        user = db.query(models.User).filter(models.User.user_id == user_id).first()
         if not user:
+            logger.warning("User not found: user_id=%s", user_id)
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
@@ -40,6 +46,7 @@ def current_user(
 
 
     else:
+        logger.warning("Invalid role")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invalid role"

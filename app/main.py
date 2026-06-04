@@ -1,9 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.core.logger import set_logger
+import logging
+set_logger()
 
 from app.api.v1.api import pb_router
 
+logger = logging.getLogger(__name__)
+
 def create_app() -> FastAPI:
+    logger.info("Creating PiggyBank API......")
+
     app = FastAPI(
         title="PiggyBank API",
         description="Digital wallet",

@@ -1,15 +1,14 @@
 from datetime import timedelta, datetime
 from jose import jwt , JWTError
 import uuid
-import os
-from dotenv import load_dotenv
-from pathlib import Path
+import logging
+from app.core.config import settings
 
-load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env", override=True)
+logger = logging.getLogger(__name__)
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRY_MINUTES = 30
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRY_MIN = settings.ACCESS_TOKEN_EXPIRY_MIN
 
 def create_access_token(  #user for short time like minutes
         user_id: int,
@@ -21,7 +20,7 @@ def create_access_token(  #user for short time like minutes
         "user_id": user_id, #means subject of token so token belongs to this xyz userid user
         "role":role,
         "exp" : datetime.utcnow() + (
-            expiry if expiry is not None else timedelta(minutes = ACCESS_TOKEN_EXPIRY_MINUTES)
+            expiry if expiry is not None else timedelta(minutes = ACCESS_TOKEN_EXPIRY_MIN)
         ), #means after 30 min token expires
         "jti" : str(uuid.uuid4()), #a unique id for this exact token not user like serial number
         "refresh" : refresh # cannot be user for days thats why refrsh = false | # long lives days or weeks
@@ -43,7 +42,8 @@ def decode_token(token : str) ->dict:
             algorithms = [ALGORITHM]
         )
         return payload
-    except JWTError:
+    except JWTError as exc:
+        logger.warning("JWT decode failed", exc_info=exc)
         return None
 
 
