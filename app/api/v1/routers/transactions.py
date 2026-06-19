@@ -1,19 +1,21 @@
-from fastapi import APIRouter,HTTPException, Depends, status
+from fastapi import APIRouter,HTTPException, Depends, status, Body
 from sqlalchemy.orm import Session
 import logging
+
 from app.models import models
 from app.db.session import get_db
 from app.core.gate import current_user
 from app.schemas.piggybanks_schema import new_target
+from app.schemas.transactions_schema import Transaction
 
 router = APIRouter()
 
 logger = logging.getLogger(__name__)
 
 @router.post("/users/piggybank/{piggybank_id}/deposit")
-def create_piggybank_deposit(
+def create_deposit(
     piggybank_id: int,
-    amount: float,
+    amount: float = Body(...),
     db: Session = Depends(get_db),
     current: dict = Depends(current_user),
 ):
@@ -51,9 +53,9 @@ def create_piggybank_deposit(
 
 
 @router.post("/users/piggybank/{piggybank_id}/withdraw")
-def create_piggybank_withdraw(
+def create_withdraw(
     piggybank_id: int,
-    amount: float,
+    amount: float = Body(...),
     db: Session = Depends(get_db),
     current: dict = Depends(current_user),
 ):
@@ -117,12 +119,14 @@ def show_transaction(
         .all()
     )
     if not transactions:
-        logger.warning("Transactions not found for ", piggybank_id)
+        logger.warning("Transactions not found for %s", piggybank_id)
         raise HTTPException(status_code=404, detail="No transactions found")
+
     return transactions
 
-@router.put("/users/piggybank/{piggybank_id/new_target")
+@router.put("/users/piggybank/{piggybank_id}/new_target")
 def set_new_target(
+        piggybank_id:int,
         data: new_target,
         db: Session = Depends(get_db),
         current: dict = Depends(current_user)
@@ -130,7 +134,7 @@ def set_new_target(
     piggybank = (
         db.query(models.PiggyBank)
         .filter(
-        models.PiggyBank.piggybank_id == data.piggybank_id,
+        models.PiggyBank.piggybank_id == piggybank_id,
             models.PiggyBank.user_id == current["user"].user_id,
     ).first()
     )
@@ -141,7 +145,7 @@ def set_new_target(
             detail="PiggyBank not found"
         )
 
-    if piggybank.balance > piggybank.target_amount:
+    if piggybank.balance >= piggybank.target_amount:
         piggybank.target_amount = data.target_amount
 
         db.commit()

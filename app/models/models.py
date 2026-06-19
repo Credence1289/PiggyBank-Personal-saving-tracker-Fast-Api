@@ -50,4 +50,3 @@ class Transaction(Base):
 
     piggybank = relationship("PiggyBank", back_populates="transactions")
 
-

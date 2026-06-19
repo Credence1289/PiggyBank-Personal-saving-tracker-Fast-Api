@@ -1,12 +1,14 @@
 from fastapi import APIRouter,HTTPException, Depends, status
+from typing import List
 from sqlalchemy.orm import Session
 import logging
 
+from app.models.models import User, PiggyBank
 from app.core.security import hash_password, verify_password
 from app.models import models
 from app.db.session import get_db
 from app.core.gate import current_user
-from app.schemas.piggybanks_schema import PiggyBankCreate, new_target
+from app.schemas.piggybanks_schema import PiggyBankCreate, new_target, PiggyBank,PiggyBankDelete
 
 router = APIRouter()
 
@@ -36,37 +38,35 @@ def create_piggybank(
 
 
 @router.delete("/users/piggybank/{piggybank_id}")
-def delete_piggybank_id(
-    piggybank_id: int,
-    name: str,
-    passwordpb: str,
+def delete_piggybank(
+    data: PiggyBankDelete,
     db: Session = Depends(get_db),
     current: dict = Depends(current_user),
 ):
     piggybank = (
         db.query(models.PiggyBank)
         .filter(
-            models.PiggyBank.piggybank_id == piggybank_id,
+            models.PiggyBank.piggybank_id == data.piggybank_id,
             models.PiggyBank.user_id == current["user"].user_id,
-            models.PiggyBank.name == name,
         )
         .first()
     )
+
     if not piggybank:
-        logger.warning("PiggyBank not found for %s", piggybank_id)
+        logger.warning("PiggyBank not found for %s", data.piggybank_id)
         raise HTTPException(status_code=404, detail="PiggyBank not found")
 
-    if not verify_password(passwordpb, piggybank.hashed_passwordpb):
-        logger.warning("Authentication failed for deleting piggybank %s", piggybank_id)
+    if not verify_password(data.passwordpb, piggybank.hashed_passwordpb):
+        logger.warning("Authentication failed for deleting piggybank %s", data.piggybank_id)
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     db.delete(piggybank)
     db.commit()
-    logger.info("PiggyBank deleted%s", piggybank_id)
+    logger.info("PiggyBank deleted%s", data.piggybank_id)
     return {"message": "PiggyBank successfully deleted"}
 
 
-@router.get("/users/piggybank")
+@router.get("/users/piggybanks", response_model=List[PiggyBank])
 def show_all_piggy(db: Session = Depends(get_db), current: dict = Depends(current_user)):
     piggybanks = (
         db.query(models.PiggyBank)
@@ -75,19 +75,12 @@ def show_all_piggy(db: Session = Depends(get_db), current: dict = Depends(curren
     )
     if not piggybanks:
         logger.warning("PiggyBank not found")
-        raise HTTPException(status_code=404, detail="No piggybanks found")
+        return []
 
-    return [
-        {
-            "piggybank_id": p.piggybank_id,
-            "name": p.name,
-            "balance": p.balance,
-        }
-        for p in piggybanks
-    ]
+    return piggybanks
 
 
-@router.get("/users/piggybank/{piggybank_id}")
+@router.get("/users/piggybank/{piggybank_id}", response_model=PiggyBank)
 def show_piggy(
     piggybank_id: int,
     db: Session = Depends(get_db),
@@ -105,12 +98,13 @@ def show_piggy(
         logger.warning("PiggyBank not found for %s", piggybank_id)
         raise HTTPException(status_code=404, detail="PiggyBank not found")
 
-    return {
-        "piggybank_id": piggybank.piggybank_id,
-        "user_id": piggybank.user_id,
-        "name": piggybank.name,
-        "balance": piggybank.balance,
-        "target_amount": piggybank.target_amount,
-        "is_target_active": piggybank.is_target_active,
-    }
+    return piggybank
+    # return {
+    #     "piggybank_id": piggybank.piggybank_id,
+    #     "user_id": piggybank.user_id,
+    #     "name": piggybank.name,
+    #     "balance": piggybank.balance,
+    #     "target_amount": piggybank.target_amount,
+    #     "is_target_active": piggybank.is_target_active,
+    # }
 
