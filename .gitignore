@@ -25,6 +25,8 @@ venv.bak/
 .idea/compiler.xml
 .idea/jarRepositories.xml
 
+.idea/
+
 # Project files
 *.iml
 *.log
@@ -34,3 +36,6 @@ Thumbs.db
 # Database (if any)
 *.db
 *.sqlite3
+
+#app.log
+*.log

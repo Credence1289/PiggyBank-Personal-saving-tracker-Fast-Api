@@ -1,0 +1,29 @@
+# Python
+__pycache__
+*.pyc
+*.pyo
+
+# Virtual env
+myenv
+venv
+.venv
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+
+# Testing
+.pytest_cache
+
+# Environment
+.env
+
+# Logs
+*.log
+
+# Alembic cache
+alembic/__pycache__

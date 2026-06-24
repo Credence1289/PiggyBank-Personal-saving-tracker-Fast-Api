@@ -1,0 +1,30 @@
+services:
+  app:
+    build: .
+
+    ports:
+      - "8000:8000"
+
+    env_file:
+      - .env
+
+    depends_on:
+      - db
+
+  db:
+    image: postgres:17
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Qwert@123
+      POSTGRES_DB: piggybank
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # volume_name:container_path
+
+volumes:
+  postgres_data:
