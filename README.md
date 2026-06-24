@@ -1,6 +1,7 @@
 # PiggyBank API
 
-<img width="747" height="494" alt="PiggyBank API Architecture" src="https://github.com/user-attachments/assets/619bdb7b-8a38-4939-8ad9-bde5d4a6c4b3" />
+<<img width="754" height="599" alt="endpoints" src="https://github.com/user-attachments/assets/dcceef5e-8d9b-4009-a76b-17c37d9b4d5f" />
+>
 
 A production-oriented personal savings tracker backend built with **FastAPI** and **PostgreSQL**. This project demonstrates modern backend development practices including JWT-based authentication, database migrations, containerization, and clean REST API architecture.
 
