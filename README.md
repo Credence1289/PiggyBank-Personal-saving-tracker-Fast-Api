@@ -524,7 +524,7 @@ For questions or contributions, please visit the [GitHub repository](https://git
 ## 👨‍💻 Author
 
 **Vinayak Dewoolkar**  
-Backend Developer | FastAPI Specialist | API Architecture Enthusiast
+Backend Developer | FastAPI | API Architecture Enthusiast
 
 
 ---
