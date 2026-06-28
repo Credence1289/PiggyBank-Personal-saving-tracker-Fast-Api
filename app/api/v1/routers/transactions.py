@@ -7,7 +7,9 @@ from app.db.session import get_db
 from app.core.gate import current_user
 from app.schemas.piggybanks_schema import new_target
 from app.schemas.transactions_schema import Transaction
-
+from app.schemas.pagination_schema import PaginateTransactionOut
+from app.dependencies.pagination import pagination_param
+from app.utils.pagination import paginate
 router = APIRouter()
 
 logger = logging.getLogger(__name__)
@@ -98,6 +100,7 @@ def create_withdraw(
 @router.get("/users/piggybank/{piggybank_id}/transaction")
 def show_transaction(
     piggybank_id: int,
+    pagination=Depends(pagination_param),
     db: Session = Depends(get_db),
     current: dict = Depends(current_user),
 ):
@@ -116,13 +119,18 @@ def show_transaction(
     transactions = (
         db.query(models.Transaction)
         .filter(models.Transaction.piggybank_id == piggybank_id)
-        .all()
+        # .all()
     )
     if not transactions:
         logger.warning("Transactions not found for %s", piggybank_id)
         raise HTTPException(status_code=404, detail="No transactions found")
 
-    return transactions
+    return paginate(
+        query=transactions,
+        page=pagination["page"],
+        size=pagination["size"],
+        key="transactions",
+    )
 
 @router.put("/users/piggybank/{piggybank_id}/new_target")
 def set_new_target(
